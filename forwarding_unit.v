@@ -25,25 +25,30 @@ module forwarding_unit(
     else begin
 	 begin
       // ForwardA logic
-      if(hazard_A_EXMEM == 1'b1) 
-        ForwardA<= 2'b11;
-      else if((writeBack_EXMEM && (RD_EXMEM != 5'b0) && (RD_EXMEM == RS1_IDEX)))
+      
+      if((writeBack_EXMEM && (RD_EXMEM != 5'b0) && (RD_EXMEM == RS1_IDEX)))
         ForwardA <= 2'b10;
       else if (writeBack_MEMWB && (RD_MEMWB != 5'b0) &&
           !((writeBack_EXMEM && (RD_EXMEM != 5'b0) && (RD_EXMEM != RS1_IDEX)))&& (RD_MEMWB== RS1_IDEX))
         ForwardA <= 2'b01;
+      else if(hazard_A_EXMEM == 1'b1 || hazard_B_EXMEM == 1'b1) 
+        ForwardA<= 2'b11;
       else
         ForwardA <= 2'b00;
 		end
 		begin
       // ForwardB logic
-      if(hazard_B_EXMEM == 1'b1) 
-        ForwardB<= 2'b11;
-      else if((writeBack_EXMEM && (RD_EXMEM != 5'b0) && (RD_EXMEM == RS2_IDEX)))
+      if((writeBack_EXMEM && (RD_EXMEM != 5'b0) && (RD_EXMEM == RS2_IDEX)))
         ForwardB <= 2'b10;
       else if (writeBack_MEMWB && (RD_MEMWB != 5'b0) &&
           !((writeBack_EXMEM && (RD_EXMEM != 5'b0) && (RD_EXMEM != RS2_IDEX))) && (RD_MEMWB== RS2_IDEX))
         ForwardB <= 2'b01;
+      else if((hazard_B_EXMEM == 1'b1) ||( hazard_A_EXMEM==1'b1) )
+        ForwardB<= 2'b11;
+      
+      
+      
+      
       else
         ForwardB <= 2'b00;
 		 end

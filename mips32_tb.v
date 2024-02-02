@@ -10,7 +10,7 @@ mip32_b mip (clk, reset);
 
 
 initial begin 
-	$dumpfile("BenchmarkI.vcd");      // create a VCD waveform dump called "wave.vcd"
+	$dumpfile("BenchmarkII.vcd");      // create a VCD waveform dump called "wave.vcd"
     $dumpvars(0, mip);
    
 	reset = 1'b1;
