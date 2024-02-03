@@ -1,13 +1,13 @@
 module MEMWB(clock, reset, iPC, iIR, iwrite_addr, imem_to_reg, ipc_to_reg, ireg_write,iData_mem_res, omem_to_reg, oData_mem_res,
-oPC, oIR, owrite_addr, opc_to_reg, oreg_write,ialu_res,oalu_res,imem_read,hazard_in,hazard_MEMWB);
+oPC, oIR, owrite_addr, opc_to_reg, oreg_write,ialu_res,oalu_res,imem_read);
 
 
 
-input clock, reset, imem_to_reg, ipc_to_reg,  ireg_write, imem_read,hazard_in;
+input clock, reset, imem_to_reg, ipc_to_reg,  ireg_write, imem_read;
 input [31:0] iPC, iIR, ialu_res,iData_mem_res;
 input[4:0] iwrite_addr;
 
-output reg   omem_to_reg, opc_to_reg, oreg_write, hazard_MEMWB;
+output reg   omem_to_reg, opc_to_reg, oreg_write;
 output reg [31:0] oPC, oIR,oalu_res,oData_mem_res;
 output reg [4:0] owrite_addr;
 
@@ -21,7 +21,7 @@ begin
 	if(~reset) begin
     
 		oalu_res <= ialu_res;
-		hazard_MEMWB<= hazard_in;
+   
 		
 		omem_to_reg <= imem_to_reg;
 		opc_to_reg <= ipc_to_reg;

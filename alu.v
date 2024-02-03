@@ -3,7 +3,7 @@ input [3:0]aluCON,
 input [31:0] In1,
 input [31:0] In2,
 output [31:0] result,
-output reg branchYes,
+
 output reg ov,
 output zero);
 
@@ -43,12 +43,7 @@ always @(*)
         4'h5: res <= In1 ~^ In2; 
         4'h6: res <= In1 << In2;
         4'h7: res <= In1 >> In2;
-        4'h8: begin if(In1 == In2) branchYes <= 1; else branchYes<= 0; res <= In1 - In2; end
-        4'h9: begin if(In1 != In2) branchYes <= 1; else branchYes<= 0; res <= In1 - In2; end
-        4'hA: begin if(In1 >= In2) branchYes <= 1; else branchYes<= 0; res <= In1 - In2; end
-        4'hB: begin if(In1 > In2) branchYes <= 1; else branchYes<= 0;  res <= In1 - In2;  end
-        4'hC: begin if(In1 <= In2) branchYes <= 1; else branchYes<= 0; res <= In1 - In2; end
-        4'hD: begin if(In1 < In2) branchYes <= 1; else branchYes<= 0;  res <= In1 - In2;  end
+
         4'hE: begin
                     res <= In1 + In2; 
                     ov <= 1'b0;

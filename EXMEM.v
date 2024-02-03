@@ -1,12 +1,12 @@
 module EXMEM(clock, reset, iPC, iIR, iwrite_addr, imem_read, imem_to_reg, ipc_to_reg, imem_write, ireg_write, iRS2,
-oPC, oIR, owrite_addr, omem_read, opc_to_reg, omem_write, oreg_write,ialu_res,oalu_res,omem_to_reg,oRS2,hazardA_in,hazard_Bin, hazard_A_EXMEM,hazard_B_EXMEM);
+oPC, oIR, owrite_addr, omem_read, opc_to_reg, omem_write, oreg_write,ialu_res,oalu_res,omem_to_reg,oRS2);
 
 
-	input clock, reset, imem_read, imem_to_reg, ipc_to_reg, imem_write,  ireg_write,hazardA_in,hazard_Bin;
+	input clock, reset, imem_read, imem_to_reg, ipc_to_reg, imem_write,  ireg_write;
 	input [31:0] iPC, iIR, ialu_res,iRS2;
 	input[4:0] iwrite_addr;
 
-	output reg  omem_read, omem_to_reg, opc_to_reg, omem_write, oreg_write,hazard_A_EXMEM,hazard_B_EXMEM;
+	output reg  omem_read, omem_to_reg, opc_to_reg, omem_write, oreg_write;
 	output reg [31:0] oPC, oIR,oalu_res, oRS2;
 	output reg [4:0] owrite_addr;
 
@@ -26,14 +26,12 @@ begin
 		omem_to_reg <= imem_to_reg;
 		opc_to_reg <= ipc_to_reg;
 		omem_write <= imem_write;
-		
+
 		oreg_write <= ireg_write;
 		oPC <= iPC;
 		oIR <= iIR;
 
 		owrite_addr <= iwrite_addr;
-		hazard_A_EXMEM<=hazardA_in;
-		hazard_B_EXMEM<=hazard_Bin;
 
 	end
 end

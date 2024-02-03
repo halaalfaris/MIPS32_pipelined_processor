@@ -5,8 +5,6 @@ module forwarding_unit(
   input [4:0] RD_MEMWB,
   input clk,
   input rst,
-  input hazard_A_EXMEM,
-  input hazard_B_EXMEM,
   input writeBack_EXMEM,
   input writeBack_MEMWB,
   output reg [1:0] ForwardA,
@@ -25,14 +23,11 @@ module forwarding_unit(
     else begin
 	 begin
       // ForwardA logic
-      
       if((writeBack_EXMEM && (RD_EXMEM != 5'b0) && (RD_EXMEM == RS1_IDEX)))
         ForwardA <= 2'b10;
       else if (writeBack_MEMWB && (RD_MEMWB != 5'b0) &&
           !((writeBack_EXMEM && (RD_EXMEM != 5'b0) && (RD_EXMEM != RS1_IDEX)))&& (RD_MEMWB== RS1_IDEX))
         ForwardA <= 2'b01;
-      else if(hazard_A_EXMEM == 1'b1 || hazard_B_EXMEM == 1'b1) 
-        ForwardA<= 2'b11;
       else
         ForwardA <= 2'b00;
 		end
@@ -43,12 +38,6 @@ module forwarding_unit(
       else if (writeBack_MEMWB && (RD_MEMWB != 5'b0) &&
           !((writeBack_EXMEM && (RD_EXMEM != 5'b0) && (RD_EXMEM != RS2_IDEX))) && (RD_MEMWB== RS2_IDEX))
         ForwardB <= 2'b01;
-      else if((hazard_B_EXMEM == 1'b1) ||( hazard_A_EXMEM==1'b1) )
-        ForwardB<= 2'b11;
-      
-      
-      
-      
       else
         ForwardB <= 2'b00;
 		 end

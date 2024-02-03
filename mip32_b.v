@@ -1,27 +1,3 @@
-`include "adder4.v"
-`include "alu.v"
-`include "aluCON.v"
-`include "bmux2to1.v"
-`include "control_unit.v"
-`include "data_memory.v"
-`include "extract_reg_addr.v"
-`include "IR.v"
-`include "jumpMUX.v"
-`include "jumpshift.v"
-`include "mux2to1.v"
-`include "PC_reg.v"
-`include "register_file.v"
-`include "sing_extend.v"
-`include "write_reg_MUX.v"
-`include "IFID.v"
-`include "hazard_detection.v"
-`include "IDEX.v"
-`include "forwarding_unit.v"
-`include "mux_4to1.v"
-`include "EXMEM.v"
-`include "MEMWB.v"
-`include "Comparator_32.v"
-`include "reg1.v"
 
 module mip32_b(
 	clk,
@@ -40,12 +16,12 @@ wire	[4:0] write_address;
 wire	[31:0] write_data;
 wire	[31:0] instruction;
 wire	[1:0] reg_dest;
-wire	branch_yes;
-wire	branch;
-wire	[31:0] address_p_4;
+wire	branch_yes,branch_yes_IDEX;
+wire	branch,branch_IDEX;
+wire	[31:0] address_p1;
 wire	[31:0] sign_extended;
 wire	[31:0] address_branch;
-wire	[1:0] jump;
+wire	[1:0] jump, jump_IDEX;
 wire	[31:0] new_address;
 wire	[31:0] read_data_1;
 wire	pc_to_reg;
@@ -61,7 +37,7 @@ wire	[31:0] read_data_2;
 wire	alusrc;
 wire	mem_to_reg;
 wire	[31:0] Dmemory_res;
-wire	hold,flush_ld;
+wire	hold,flush;
 	
 	//SEGMENT IR YA FERAAAAAAAAAAAAAAAAS
 	
@@ -75,8 +51,6 @@ wire mem_to_reg_IDEX;
 wire pc_to_reg_IDEX;
 wire mem_write_IDEX;
 wire reg_write_IDEX;
-wire ld_has_hazard_B,ld_has_hazard_A,hazard_B_IDEX,hazard_A_IDEX,hazard_A_EXMEM,hazard_B_EXMEM;
-//wire hazard_IDEX,hazard_EXMEM,hazard_MEMWB;//added by hala feb 1st
 
 wire [31:0]PC_IDEX;
 wire [31:0]IR_IDEX;
@@ -107,7 +81,7 @@ wire [31:0] alu_res_MEMWB;
 wire [31:0] Dmem_res_MEMWB;
 wire [4:0]write_addr_MEMWB;
 wire [31:0] IR_MEMWB;
-wire [31:0] PC_MEMWB,hazard_alu_input;
+wire [31:0] PC_MEMWB;
 
 //forwarding wires
 wire [1:0] ForwardA;
@@ -131,22 +105,35 @@ IFID IF_ID(
 	.reset(reset),
 	.hold(hold),
 	.iIR(instruction),
-	.iPC(intruct_address),
+	.iPC(address_p1),
 	.oIR(instruction_IFID),
 	.oPC(PC_IFID));
-/*
-hazard_detection hdu(
-		.forward(forward),
-		.alusrc(alusrc),
-		.SW_or_Branch(sworbranch),
-		.dest_EXE(write_addr_IDEX),
-		.dest_MEM(write_addr_EXMEM),
-		.Mem_to_Reg_EXE(reg_write_IDEX),
-		.Mem_to_Reg_MEM(reg_write_EXMEM),
-		.IR(IR_IFID),
-		.hazard_detected(hazard));
-	*/	
 	
+hazard_detection HDU(
+	.src1_ID(read_address_1),
+	.src2_ID(read_address_2),
+	.dest_EXE(RS2_IDEX),
+	.mem_read_IDEX(mem_read_IDEX),
+	.branch(branch_IDEX),
+	.jump(jump_IDEX),
+	.branchYes(branch_yes_IDEX),
+	.hazard(flush),
+	.hold(hold));
+
+
+control_unit	con_unit(
+	.IR(instruction_IFID),
+	.branch(branch),
+	.mem_read(mem_read),
+	.mem_to_reg(mem_to_reg),
+	.pc_to_reg(pc_to_reg),
+	.mem_write(mem_write),
+	.alusrc(alusrc),
+	.reg_write(reg_write),
+	.aluop(aluop),
+	.jump(jump),
+	.reg_dest(reg_dest));
+
 register_file	rf(
 
 
@@ -162,7 +149,14 @@ register_file	rf(
 	.read_data_1(read_data_1),
 	.read_data_2(read_data_2));
 
+Comparator_32bit comp(
+  .In1(read_data_1),
+  .In2(read_data_2),
+  .IR(instruction_IFID),
+  .rst(reset),
+  .branchYes(branch_yes));
 
+  
 sign_extension	signEx(
 	.IR(instruction_IFID),
 	.sign_out(sign_extended));
@@ -178,9 +172,16 @@ write_reg_MUX	write_reg_M(
 bmux2to1	Bmux(
 	.branchYes(branch_yes),
 	.branch(branch),
-	.add_out(address_p_4),
+	.add_out(PC_IFID),
+	.pc_plus1(address_p1),
 	.target(sign_extended),
 	.addressBranch(address_branch));
+	
+
+jumpShift	Jshift(
+	.pcin(PC_IFID),
+	.target1(instruction_IFID),
+	.newAddr(new_address));
 
 
 jumpMux	Jmux(
@@ -191,10 +192,6 @@ jumpMux	Jmux(
 	.newPc(next_instruction));
 
 // this will change as we shift the branch calculation stage beware of the instruction inputs
-jumpShift	Jshift(
-	.pcin(address_p_4),
-	.target1(instruction_IFID),
-	.newAddr(new_address));
 
 
 mux2to1	ultimate_write_back_M(
@@ -206,14 +203,13 @@ mux2to1	ultimate_write_back_M(
 
 adder4	add4(
 	.A(intruct_address),
-	.add_out(address_p_4));
+	.add_out(address_p1));
 
 IDEX ID_EX(
 	//inputs
-	.hazardA(ld_has_hazard_A),
-	.hazardB(ld_has_hazard_B),
+	.hazard_detected(hazard),
 	.clock(clk),
-	.flush(flush_ld),
+	.flush(flush),
 	.reset(reset),
 	.imem_read(mem_read),
 	.imem_to_reg(mem_to_reg),
@@ -233,8 +229,15 @@ IDEX ID_EX(
 	.iread_data1(read_data_1),
 	.iread_data2(read_data_2),
 	.isign_ext(sign_extended),
+	
+	.ibranch(branch),
+	.ibranch_yes(branch_yes),
+	.ijump(jump),
 	//outputs
 	//execute
+	.obranch(branch_IDEX),
+	.obranch_yes(branch_yes_IDEX),
+	.ojump(jump_IDEX),
 	.oalusrc(alusrc_IDEX), 
 	.osign_ext(sign_ext_IDEX),
 	.oread_data1(read_data1_IDEX),
@@ -249,9 +252,7 @@ IDEX ID_EX(
 	.omem_write(mem_write_IDEX),
 	.oreg_write(reg_write_IDEX),
 	.oPC(PC_IDEX),
-	.oIR(IR_IDEX),	  
-	.hazard_A_IDEX(hazard_A_IDEX)  ,///////added by Hala Feb 1st
-	.hazard_B_IDEX(hazard_B_IDEX),
+	.oIR(IR_IDEX),	    
 	.owrite_addr(write_addr_IDEX));
 
 		    
@@ -260,7 +261,7 @@ alu ALU(
 	//input will be from mux forwarding
 	.In1(alu_input1),
 	.In2(alu_in_2),
-	.branchYes(branch_yes),
+	
 	.result(alu_res));
 
 //inputs will change
@@ -273,8 +274,6 @@ forwarding_unit forward2(
 	.clk(clk),
 	.rst(reset),
 	.RS1_IDEX(RS1_IDEX),
-	.hazard_A_EXMEM(hazard_A_EXMEM),
-	.hazard_B_EXMEM(hazard_B_EXMEM),
 	.RS2_IDEX(RS2_IDEX),
 	.RD_EXMEM(write_addr_EXMEM),
 	.RD_MEMWB(write_addr_MEMWB),
@@ -289,7 +288,7 @@ forwarding_unit forward2(
 		.data_input_0(read_data1_IDEX),
 		.data_input_1(write_data),
 		.data_input_2(alu_res_EXMEM),
-		.data_input_3(hazard_alu_input),
+		.data_input_3(),
 		.select(ForwardA),
 		.data_output(alu_input1));
 
@@ -297,7 +296,7 @@ forwarding_unit forward2(
 		.data_input_0(read_data2_IDEX),
 		.data_input_1(write_data),
 		.data_input_2(alu_res_EXMEM),
-		.data_input_3(hazard_alu_input),
+		.data_input_3(),
 		.select(ForwardB),
 		.data_output(alu_input2));
 		
@@ -313,8 +312,7 @@ EXMEM EXMEM_buffer(
 	//inputs
 	.clock(clk), 
 	.reset(reset),
-	.hazardA_in(hazard_A_IDEX),
-	.hazard_Bin(hazard_B_IDEX),
+
 	.imem_read(mem_read_IDEX),
 	.imem_to_reg(mem_to_reg_IDEX),
 	.ipc_to_reg(pc_to_reg_IDEX),
@@ -334,8 +332,7 @@ EXMEM EXMEM_buffer(
 	.oPC(PC_EXMEM),
 	.oIR(IR_EXMEM),	
 	.oRS2(RS2_EXMEM),
-	.hazard_A_EXMEM(hazard_A_EXMEM), ///////added by hala feb 1st
-	.hazard_B_EXMEM(hazard_B_EXMEM),
+	
 	//goes to write back mux
 	.oalu_res(alu_res_EXMEM),	
 	//write back
@@ -345,18 +342,6 @@ EXMEM EXMEM_buffer(
 	.oreg_write(reg_write_EXMEM));
 
 
-control_unit	con_unit(
-	.IR(instruction_IFID),
-	.branch(branch),
-	.mem_read(mem_read),
-	.mem_to_reg(mem_to_reg),
-	.pc_to_reg(pc_to_reg),
-	.mem_write(mem_write),
-	.alusrc(alusrc),
-	.reg_write(reg_write),
-	.aluop(aluop),
-	.jump(jump),
-	.reg_dest(reg_dest));
 
 mux_4to1  RS2_sw_input(
 		.data_input_0(read_data2_IDEX),
@@ -390,7 +375,7 @@ MEMWB MEMWB_buffer(
 	//inputs
 	.clock(clk), 
 	.reset(reset),
-	.hazard_in(hazard_EXMEM),
+
 	.imem_read(mem_read_EXMEM),
 	.imem_to_reg(mem_to_reg_EXMEM),
 	.ipc_to_reg(pc_to_reg_EXMEM),
@@ -408,7 +393,7 @@ MEMWB MEMWB_buffer(
 
 	.oPC(PC_MEMWB),
 	.oIR(IR_MEMWB),	
-	.hazard_MEMWB(hazard_MEMWB),
+
 	
 	//goes to write back mux
 		
@@ -420,36 +405,18 @@ MEMWB MEMWB_buffer(
 	.opc_to_reg(pc_to_reg_MEMWB),
 	.oreg_write(reg_write_MEMWB));
 
-reg1 reg_saveus(
-	.clk(clk),
-	.dataIn(Dmem_res_MEMWB),
-	.dataOut(hazard_alu_input)
-);
-
 mux2to1	writeBack_mux(
 	.select1(mem_to_reg_MEMWB),
 	.data1(alu_res_MEMWB),
 	.data2(Dmem_res_MEMWB),
 	.outputdata(write_back));
+	
 
 
 IR	instruction_memory(
 	.address(intruct_address),
 	.data(instruction));
 	
-hazard_detection HDU(
-	.src1_ID(read_address_1),
-	.src2_ID(read_address_2),
-	.dest_EXE(RS2_IDEX),
-	.mem_read_IDEX(mem_read_IDEX),
-	.branch(branch),
-	.branchYes(branch_yes),
-	.ld_has_hazard(flush_ld),
-	.ld_has_hazard_A(ld_has_hazard_A),
-	.ld_has_hazard_B(ld_has_hazard_B),
-	.branch_has_hazard(),
-	.hazard(),
-	.hold(hold));
 
 
 endmodule

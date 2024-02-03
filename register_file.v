@@ -10,7 +10,7 @@ module register_file (read_addr_1, read_addr_2, write_addr, read_data_1, read_da
 	assign read_data_1 = reg_file[read_addr_1];
 	assign read_data_2 = reg_file[read_addr_2];
 	
-	always @(posedge clk or posedge reset) // Ou combines the block of reset into the block of posedge clk
+	always @(negedge clk or posedge reset) // Ou combines the block of reset into the block of posedge clk
 	begin
 		
 		if (reset==1'b1)
