@@ -118,7 +118,7 @@ hazard_detection HDU(
    	.dest_EXE(RS2_IDEX),   
   	.mem_read_IDEX(mem_read_IDEX),
   	.branch(branch), 
-  	.branchYes(branchYes), 
+	.branchYes(branch_yes), 
   	.writeBack_MEMWB(reg_write_MEMWB), 
   	.writeBack_EXMEM(reg_write_EXMEM), 
   	.writeBack_IDEX(reg_write_IDEX),
