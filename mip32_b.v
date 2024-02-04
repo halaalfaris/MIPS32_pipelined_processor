@@ -115,20 +115,20 @@ hazard_detection HDU(
 	.RD_IDEX(write_addr_IDEX), 
 	.RD_EXMEM(write_addr_EXMEM),
 	.RD_MEMWB(write_addr_MEMWB),  
-  	.dest_EXE(RS2_IDEX),   
-  	.mem_read_IDEX(mem_read_IDEX),
-  	.branch(branch_IDEX), 
-  	.branchYes(branch_yes_IDEX), 
-  	.writeBack_MEMWB(reg_write_MEMWB), 
-  	.writeBack_EXMEM(reg_write_EXMEM), 
-  	.writeBack_IDEX(reg_write_IDEX),
-  	.jump(jump_IDEX),
-  	.ld_has_hazard(), 
-  	.branch_has_hazard(), 
-  	.hazard(flush), 
-  	.hold(hold),  
-  	.forwardA_Branch(forwardA_Branch), 
-  	.forwardB_Branch(forwardB_Branch));
+   .dest_EXE(RS2_IDEX),   
+  .mem_read_IDEX(mem_read_IDEX),
+  .branch(branch_IDEX), 
+  .branchYes(branch_yes_IDEX), 
+  .writeBack_MEMWB(reg_write_MEMWB), 
+  .writeBack_EXMEM(reg_write_EXMEM), 
+  .writeBack_IDEX(reg_write_IDEX),
+  .jump(jump_IDEX),
+  .ld_has_hazard(), 
+  .branch_has_hazard(), 
+  .hazard(flush), 
+  .hold(hold),  
+  .forwardA_Branch(forwardA_Branch), 
+  .forwardB_Branch(forwardB_Branch));
 
 
 control_unit	con_unit(
@@ -178,8 +178,8 @@ mux_4to1 muxBranchB(
 		
 		
 Comparator_32bit comp(
-  .In1(read_data_1),
-  .In2(read_data_2),
+  .In1(branch_forwardA),
+  .In2(branch_forwardB),
   .IR(instruction_IFID),
   .rst(reset),
   .branchYes(branch_yes));
