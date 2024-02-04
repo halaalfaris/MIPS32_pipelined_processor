@@ -13,12 +13,10 @@ assign data_in=data_in1[5:0];
             data_out <= 8'b0;
 				// Reset the register to 0 when reset is active
         end 
-		  else if (hold) begin
-				data_out <= data_out;
+		  else if (~hold) begin
+				data_out <= data_in; // Load data_in into the register on the rising edge of the clock
 				end
-		  else begin
-            data_out <= data_in; // Load data_in into the register on the rising edge of the clock
-        end
+
     end
 
 endmodule
