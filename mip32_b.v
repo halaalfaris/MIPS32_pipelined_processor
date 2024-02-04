@@ -28,7 +28,7 @@ wire	pc_to_reg;
 wire	[31:0] write_back;
 wire	[7:0] intruct_address;
 wire	[3:0] alu_control;
-wire	[31:0] alu_in_2;
+wire	[31:0] alu_in_2, branch_forwardA, branch_forwardB;
 wire	[3:0] aluop;
 wire	mem_read;
 wire	mem_write;
@@ -84,7 +84,7 @@ wire [31:0] IR_MEMWB;
 wire [31:0] PC_MEMWB;
 
 //forwarding wires
-wire [1:0] ForwardA;
+wire [1:0] ForwardA, forwardA_Branch, forwardB_Branch;
 
 wire [1:0] ForwardB;
 
@@ -148,7 +148,25 @@ register_file	rf(
 	.write_data(write_data),
 	.read_data_1(read_data_1),
 	.read_data_2(read_data_2));
-
+	
+	
+mux_4to1 muxBranchA(
+		.data_input_0(read_data1),
+		.data_input_1(alu_res_EXMEM),
+		.data_input_2(write_data),
+		.data_input_3(),
+		.select(ForwardA_Branch),
+		.data_output(branch_forwardA));
+		
+mux_4to1 muxBranchB(
+		.data_input_0(read_data2),
+		.data_input_1(alu_res_EXMEM),
+		.data_input_2(write_data),
+		.data_input_3(),
+		.select(ForwardB_Branch),
+		.data_output(branch_forwardB));
+		
+		
 Comparator_32bit comp(
   .In1(read_data_1),
   .In2(read_data_2),
@@ -283,7 +301,7 @@ forwarding_unit forward2(
 	.ForwardB(ForwardB));
 	
 	
-//FERAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAS DO THIS
+
 	mux_4to1 muxA(
 		.data_input_0(read_data1_IDEX),
 		.data_input_1(write_data),
