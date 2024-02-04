@@ -37,7 +37,7 @@ wire	[31:0] read_data_2;
 wire	alusrc;
 wire	mem_to_reg;
 wire	[31:0] Dmemory_res;
-wire	hold,flush;
+wire	hold,flush,branch_has_hazard;
 	
 	//SEGMENT IR YA FERAAAAAAAAAAAAAAAAS
 	
@@ -84,9 +84,9 @@ wire [31:0] IR_MEMWB;
 wire [31:0] PC_MEMWB;
 
 //forwarding wires
-wire [1:0] ForwardA, forwardA_Branch, forwardB_Branch;
+wire   forwardA_Branch, forwardB_Branch;
 
-wire [1:0] ForwardB;
+wire [1:0] ForwardA,ForwardB;
 
 //alu input muxes
 wire [31:0]alu_input1;
@@ -104,6 +104,7 @@ IFID IF_ID(
 	.clk(clk),
 	.reset(reset),
 	.hold(hold),
+	.flush(branch_has_hazard),
 	.iIR(instruction),
 	.iPC(address_p1),
 	.oIR(instruction_IFID),
@@ -117,22 +118,24 @@ hazard_detection HDU(
 	.RD_MEMWB(write_addr_MEMWB),  
    .dest_EXE(RS2_IDEX),   
   .mem_read_IDEX(mem_read_IDEX),
-  .branch(branch_IDEX), 
-  .branchYes(branch_yes_IDEX), 
+  .mem_to_reg_EXMEM(mem_to_reg_EXMEM),
+  .branch(branch), 
+  .branchYes(branch_yes), 
   .writeBack_MEMWB(reg_write_MEMWB), 
   .writeBack_EXMEM(reg_write_EXMEM), 
   .writeBack_IDEX(reg_write_IDEX),
-  .jump(jump_IDEX),
-  .ld_has_hazard(), 
-  .branch_has_hazard(), 
-  .hazard(flush), 
-  .hold(hold),  
-  .forwardA_Branch(forwardA_Branch), 
+  .jump(jump),
+  .ld_has_hazard(flush), 
+  .branch_has_hazard(branch_has_hazard), 
+  .hazard(),
+  .hold(hold),
+  .forwardA_Branch(forwardA_Branch),
   .forwardB_Branch(forwardB_Branch));
 
 
 control_unit	con_unit(
 	.IR(instruction_IFID),
+	
 	.branch(branch),
 	.mem_read(mem_read),
 	.mem_to_reg(mem_to_reg),
@@ -159,22 +162,27 @@ register_file	rf(
 	.read_data_1(read_data_1),
 	.read_data_2(read_data_2));
 	
+	/*
+	mux2to1	alu_src_mux(
+	.select1(alusrc_IDEX),
+	.data1(alu_input2),
+	.data2(sign_ext_IDEX),
+	//will cahnge the naming after adding the forwarding mux
+	.outputdata(alu_in_2));
+*/
+	mux2to1	muxBranchA(
+	.select1(forwardA_Branch),
+	.data1(read_data_1),
+	.data2(alu_res_EXMEM),
 	
-mux_4to1 muxBranchA(
-		.data_input_0(read_data_1),
-		.data_input_1(alu_res_EXMEM),
-		.data_input_2(write_data),
-		.data_input_3(),
-		.select(ForwardA_Branch),
-		.data_output(branch_forwardA));
+	.outputdata(branch_forwardA));
+
+	mux2to1 muxBranchB(
+		.data1(read_data_2),
+		.data2(alu_res_EXMEM),
 		
-mux_4to1 muxBranchB(
-		.data_input_0(read_data_2),
-		.data_input_1(alu_res_EXMEM),
-		.data_input_2(write_data),
-		.data_input_3(),
-		.select(ForwardB_Branch),
-		.data_output(branch_forwardB));
+		.select1(forwardB_Branch),
+		.outputdata(branch_forwardB));
 		
 		
 Comparator_32bit comp(
