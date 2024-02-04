@@ -110,15 +110,27 @@ IFID IF_ID(
 	.oPC(PC_IFID));
 	
 hazard_detection HDU(
-	.src1_ID(read_address_1),
-	.src2_ID(read_address_2),
-	.dest_EXE(RS2_IDEX),
-	.mem_read_IDEX(mem_read_IDEX),
-	.branch(branch_IDEX),
-	.jump(jump_IDEX),
-	.branchYes(branch_yes_IDEX),
-	.hazard(flush),
-	.hold(hold));
+	.src1_ID(read_address_1), 
+	.src2_ID(read_address_2), 
+	.RD_IDEX(write_addr_IDEX), 
+	.RD_EXMEM(write_addr_EXMEM),
+	.RD_MEMWB(write_addr_MEMWB),  
+   	.dest_EXE(RS2_IDEX),   
+  	.mem_read_IDEX(mem_read_IDEX),
+  	.branch(branch), 
+  	.branchYes(branchYes), 
+  	.writeBack_MEMWB(reg_write_MEMWB), 
+  	.writeBack_EXMEM(reg_write_EXMEM), 
+  	.writeBack_IDEX(reg_write_IDEX),
+  	.jump(jump),
+  
+  	
+  	.ld_has_hazard(), 
+  	.branch_has_hazard(), 
+  	.hazard(flush), 
+  	.hold(hold),  
+  	.forwardA_Branch(forwardA_Branch), 
+  	.forwardB_Branch(forwardB_Branch));
 
 
 control_unit	con_unit(
@@ -151,7 +163,7 @@ register_file	rf(
 	
 	
 mux_4to1 muxBranchA(
-		.data_input_0(read_data1),
+		.data_input_0(read_data_1),
 		.data_input_1(alu_res_EXMEM),
 		.data_input_2(write_data),
 		.data_input_3(),
@@ -159,7 +171,7 @@ mux_4to1 muxBranchA(
 		.data_output(branch_forwardA));
 		
 mux_4to1 muxBranchB(
-		.data_input_0(read_data2),
+		.data_input_0(read_data_2),
 		.data_input_1(alu_res_EXMEM),
 		.data_input_2(write_data),
 		.data_input_3(),
