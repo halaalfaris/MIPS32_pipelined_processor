@@ -18,12 +18,14 @@ module Comparator_32bit (
     if (rst == 1) branchYes <=0;
     else begin
     case(opcode) 
-        6'h8: begin if(In1 == In2) branchYes <= 1; else branchYes<= 0;  end
-        6'h9: begin if(In1 != In2) branchYes <= 1; else branchYes<= 0;  end
-        6'hA: begin if(In1 >= In2) branchYes <= 1; else branchYes<= 0;  end
-        6'hB: begin if(In1 > In2) branchYes <= 1; else branchYes<= 0;   end
-        6'hC: begin if(In1 <= In2) branchYes <= 1; else branchYes<= 0;  end
-        6'hD: begin if(In1 < In2) branchYes <= 1; else branchYes<= 0;   end
+        6'h6: begin if(In1 == In2) branchYes <= 1; else branchYes<= 0;  end
+        6'h7: begin if(In1 != In2) branchYes <= 1; else branchYes<= 0;  end
+        6'h8: begin if(In1 >= In2) branchYes <= 1; else branchYes<= 0;  end
+        6'h9: begin if(In1 > In2) branchYes <= 1; else branchYes<= 0;   end
+        6'hA: begin if(In1 <= In2) branchYes <= 1; else branchYes<= 0;  end
+        6'hB: begin if(In1 < In2) branchYes <= 1; else branchYes<= 0;   end
+		  default: begin branchYes<= 0; end
+		  
       endcase
       end
   end
