@@ -1,5 +1,6 @@
-module control_unit (IR, reg_dest, branch, jump, mem_read, mem_to_reg,pc_to_reg, aluop, mem_write, alusrc, reg_write);
+module control_unit (IR, reg_dest, branch,flush, jump, mem_read, mem_to_reg,pc_to_reg, aluop, mem_write, alusrc, reg_write);
 	input [31:0] IR;
+	input flush;
 	output reg  branch, pc_to_reg, mem_read, mem_to_reg, mem_write, alusrc, reg_write;
 	output reg [1:0] jump;
 	output reg [3:0] aluop;
@@ -27,6 +28,7 @@ module control_unit (IR, reg_dest, branch, jump, mem_read, mem_to_reg,pc_to_reg,
 	*/
 	always @(*)
 		begin 
+		
 			case(opcode)
 				6'h0:	// r- type
 				begin
@@ -223,9 +225,22 @@ module control_unit (IR, reg_dest, branch, jump, mem_read, mem_to_reg,pc_to_reg,
 					pc_to_reg <= 0;
 					aluop <= 4'b0000;
 				end
-			 
+
+				default: 
+				begin
+					reg_dest <= 2'b00;
+					branch <= 0;
+					jump <= 2'b00;
+					mem_read <= 0;
+					mem_to_reg <= 0;	
+					mem_write <= 0;
+					alusrc <= 0;
+					reg_write <= 0;
+					pc_to_reg <= 0;
+					aluop <= 4'b0000;
+				end
 			
-				
 			endcase
+			
 		end
 endmodule
