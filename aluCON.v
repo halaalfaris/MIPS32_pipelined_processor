@@ -1,9 +1,9 @@
-module aluCON (aluop, IR, out_to_alu);
-    input [3:0] aluop;
-    input [31:0] IR;
-    wire [5:0] funct;
-    assign funct= IR[5:0];
-    output reg [3:0] out_to_alu;
+module aluCON (
+input [3:0] aluop,
+input [5:0] funct,
+output reg [3:0] out_to_alu);
+    
+    
     /*
 add 0
 sub 1
@@ -40,6 +40,7 @@ always @(*)
                         4'h7: out_to_alu <= 4'h7;
                         4'hE: out_to_alu <= 4'hE;
                         4'hF: out_to_alu <= 4'hF;
+								default:  out_to_alu <= 4'hx;
                     endcase
                 end
             4'b0011:
@@ -58,6 +59,8 @@ always @(*)
                 out_to_alu <= 4'd12;
             4'b1010:
                 out_to_alu <= 4'd13;
+				default:
+					out_to_alu <= 4'd13;
         endcase
         
     end

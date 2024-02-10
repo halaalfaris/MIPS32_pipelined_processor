@@ -1,12 +1,11 @@
-module control_unit (IR, reg_dest, branch,flush, jump, mem_read, mem_to_reg,pc_to_reg, aluop, mem_write, alusrc, reg_write);
-	input [31:0] IR;
-	input flush;
-	output reg  branch, pc_to_reg, mem_read, mem_to_reg, mem_write, alusrc, reg_write;
-	output reg [1:0] jump;
-	output reg [3:0] aluop;
-	output reg [1:0] reg_dest;
-	wire [5:0] opcode;
-	assign opcode = IR[31:26];
+module control_unit (
+	input [5:0] opcode,
+	
+	output reg  branch, pc_to_reg, mem_read, mem_to_reg, mem_write, alusrc, reg_write,
+	output reg [1:0] jump,
+	output reg [3:0] aluop,
+	output reg [1:0] reg_dest);
+	
 	
 	
 	/*

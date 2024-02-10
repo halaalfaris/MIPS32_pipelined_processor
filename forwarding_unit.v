@@ -3,7 +3,7 @@ module forwarding_unit(
   input [4:0] RS2_IDEX,
   input [4:0] RD_EXMEM,
   input [4:0] RD_MEMWB,
-  input clk,
+  
   input rst,
   input writeBack_EXMEM,
   input writeBack_MEMWB,
@@ -21,7 +21,8 @@ module forwarding_unit(
     end 
 	 
     else begin
-	 begin
+	 
+		begin
       // ForwardA logic
       if((writeBack_EXMEM && (RD_EXMEM != 5'b0) && (RD_EXMEM == RS1_IDEX)))
         ForwardA <= 2'b10;
@@ -31,6 +32,9 @@ module forwarding_unit(
       else
         ForwardA <= 2'b00;
 		end
+		
+		
+		
 		begin
       // ForwardB logic
       if((writeBack_EXMEM && (RD_EXMEM != 5'b0) && (RD_EXMEM == RS2_IDEX)))

@@ -5,7 +5,7 @@ module mips32_tb ();
 
 reg clk, reset;
 
-mip32_b mip (clk, reset);
+pipeline mip (clk, reset);
 
 
 
